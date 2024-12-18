@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitops-html
+  labels:
+    app: gitops-html
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitops-html
+  template:
+    metadata:
+      labels:
+        app: gitops-html
+    spec:
+      containers:
+      - name: html-server
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-volume
+        configMap:
+          name: gitops-html-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitops-html-config
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Hello World</title>
+    </head>
+    <body>
+        <h1>¡Hello world from HTML,  SI08!</h1>
+        <h1>¡pasar a test!</h1>
+        <p>Nombre de host: <span id="hostname"></span></p>
+        <script>
+          var hostname = window.location.hostname;
+          document.getElementById("hostname").innerHTML = hostname;
+        </script>
+    </body>
+    </html>
