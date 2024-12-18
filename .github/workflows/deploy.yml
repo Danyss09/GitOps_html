@@ -1,0 +1,40 @@
+name: GitOps HTML Deployment
+
+# Define cuándo se ejecuta el flujo
+on:
+  push:
+    branches:
+      - main  # Solo se activa en la rama `main`
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clonar el repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Configurar acceso al clúster Kubernetes
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Authenticate with Kubernetes
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }} # Usar un secreto para la configuración de acceso
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      # 3. Aplicar los manifiestos de Kubernetes
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+
+      # 4. Verificar el estado del despliegue
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/gitops-html
